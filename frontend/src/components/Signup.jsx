@@ -10,7 +10,7 @@ import {
   hasNoErrors,
 } from '../utils/validation.js';
 
-const emptyForm = { name: '', email: '', address: '', password: '' };
+const emptyForm = { name: '', email: '', address: '', password: '', role: 'user' };
 
 const inputClass = (error) =>
   `w-full rounded border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 ${
@@ -66,6 +66,7 @@ function Signup() {
         email: form.email.trim(),
         address: form.address.trim(),
         password: form.password,
+        role: form.role,
       });
       navigate('/login', {
         state: { message: 'Account created. You can login now.' },
@@ -131,6 +132,19 @@ function Signup() {
               onChange={handleChange}
               className={`${inputClass(errors.address)} resize-y`}
             />
+          </Field>
+
+          <Field label="Account type" name="role" error={errors.role}>
+            <select
+              id="role"
+              name="role"
+              value={form.role}
+              onChange={handleChange}
+              className={inputClass(errors.role)}
+            >
+              <option value="user">Normal User</option>
+              <option value="store_owner">Store Owner</option>
+            </select>
           </Field>
 
           <Field label="Password" name="password" error={errors.password}>
