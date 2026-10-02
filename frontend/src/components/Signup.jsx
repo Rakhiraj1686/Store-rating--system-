@@ -7,11 +7,10 @@ import {
   validateEmail,
   validateAddress,
   validatePassword,
-  validateConfirmPassword,
   hasNoErrors,
 } from '../utils/validation.js';
 
-const emptyForm = { name: '', email: '', address: '', password: '', confirmPassword: '' };
+const emptyForm = { name: '', email: '', address: '', password: '' };
 
 const inputClass = (error) =>
   `w-full rounded border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 ${
@@ -50,7 +49,6 @@ function Signup() {
     email: validateEmail(form.email),
     address: validateAddress(form.address),
     password: validatePassword(form.password),
-    confirmPassword: validateConfirmPassword(form.password, form.confirmPassword),
   });
 
   const handleSubmit = async (e) => {
@@ -68,7 +66,6 @@ function Signup() {
         email: form.email.trim(),
         address: form.address.trim(),
         password: form.password,
-        confirmPassword: form.confirmPassword,
       });
       navigate('/login', {
         state: { message: 'Account created. You can login now.' },
@@ -150,18 +147,6 @@ function Signup() {
           <p className="-mt-2 mb-4 text-xs text-gray-500">
             8-16 characters, with at least one uppercase letter and one special character.
           </p>
-
-          <Field label="Confirm Password" name="confirmPassword" error={errors.confirmPassword}>
-            <input
-              id="confirmPassword"
-              name="confirmPassword"
-              type="password"
-              value={form.confirmPassword}
-              onChange={handleChange}
-              autoComplete="new-password"
-              className={inputClass(errors.confirmPassword)}
-            />
-          </Field>
 
           <button
             type="submit"

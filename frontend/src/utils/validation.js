@@ -1,8 +1,8 @@
 export function validateName(name) {
   const value = name.trim();
   if (!value) return 'Name is required';
-  if (value.length < 20 || value.length > 60) {
-    return 'Name must be between 20 and 60 characters';
+  if (value.length < 8 || value.length > 60) {
+    return 'Name must be between 8 and 60 characters';
   }
   return '';
 }
