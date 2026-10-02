@@ -5,7 +5,7 @@ export function authenticate(req, res, next) {
   const token = header.startsWith("Bearer ") ? header.slice(7) : null;
 
   if (!token) {
-    return res.status(401).json({ message: "Please login to continue" });
+    return res.status(401).json({ message: "Please login first" });
   }
 
   try {
@@ -19,7 +19,7 @@ export function authenticate(req, res, next) {
 export function authorize(...allowedRoles) {
   return (req, res, next) => {
     if (!allowedRoles.includes(req.user.role)) {
-      return res.status(403).json({ message: "You are not allowed to access this" });
+      return res.status(403).json({ message: "Unauthorized" });
     }
     next();
   };

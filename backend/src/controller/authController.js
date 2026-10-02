@@ -8,8 +8,8 @@ function checkSignup({ name, email, address, password }) {
   if (!name || !email || !address || !password) {
     return "All required fields must be filled";
   }
-  if (name.trim().length < 8 || name.trim().length > 60) {
-    return "Name must be between 8 and 60 characters";
+  if (name.trim().length < 20 || name.trim().length > 60) {
+    return "Name must be between 20 and 60 characters";
   }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
     return "Please enter a valid email address";
