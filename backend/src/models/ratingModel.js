@@ -38,3 +38,27 @@ export async function updateRating(id, rating) {
   );
   return result.rows[0];
 }
+
+const raterColumns = {
+  userName: "u.name",
+  userEmail: "u.email",
+  rating: "r.rating",
+  updatedAt: "r.updated_at",
+};
+
+// users who rated a store
+export async function getStoreRatings(storeId, sortBy, order) {
+  const column = raterColumns[sortBy] || raterColumns.userName;
+  const direction = order === "desc" ? "DESC" : "ASC";
+
+  const result = await pool.query(
+    `SELECT r.id, u.name AS "userName", u.email AS "userEmail",
+            r.rating, r.updated_at AS "updatedAt"
+     FROM ratings r
+     JOIN users u ON u.id = r.user_id
+     WHERE r.store_id = $1
+     ORDER BY ${column} ${direction}, r.id`,
+    [storeId]
+  );
+  return result.rows;
+}

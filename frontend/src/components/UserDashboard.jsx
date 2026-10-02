@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { getUser, logout } from '../services/authService.js';
 import { getErrorMessage } from '../services/api.js';
 import { addRating, getStores, updateRating } from '../services/storeService.js';
+import UpdatePassword from './UpdatePassword.jsx';
 
 function UserDashboard() {
   const navigate = useNavigate();
@@ -10,15 +11,16 @@ function UserDashboard() {
 
   const [stores, setStores] = useState([]);
   const [search, setSearch] = useState('');
+  const [sort, setSort] = useState({ sortBy: 'name', order: 'asc' });
   const [selectedStore, setSelectedStore] = useState(null);
   const [rating, setRating] = useState(5);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
 
-  const loadStores = async (searchText = '') => {
+  const loadStores = async (searchText = search.trim(), sortValue = sort) => {
     try {
-      const res = await getStores(searchText);
+      const res = await getStores({ search: searchText, ...sortValue });
       setStores(res.data.stores);
     } catch (err) {
       setError(getErrorMessage(err));
@@ -26,7 +28,7 @@ function UserDashboard() {
   };
 
   useEffect(() => {
-    getStores('')
+    getStores({ sortBy: 'name', order: 'asc' })
       .then((res) => setStores(res.data.stores))
       .catch((err) => setError(getErrorMessage(err)))
       .finally(() => setLoading(false));
@@ -36,7 +38,14 @@ function UserDashboard() {
     e.preventDefault();
     setError('');
     setMessage('');
-    loadStores(search.trim());
+    loadStores();
+  };
+
+  const handleSort = (column) => {
+    const order = sort.sortBy === column && sort.order === 'asc' ? 'desc' : 'asc';
+    const newSort = { sortBy: column, order };
+    setSort(newSort);
+    loadStores(search.trim(), newSort);
   };
 
   const openRating = (store) => {
@@ -58,7 +67,7 @@ function UserDashboard() {
         setMessage('Rating submitted');
       }
       setSelectedStore(null);
-      loadStores(search.trim());
+      loadStores();
     } catch (err) {
       setError(getErrorMessage(err));
     }
@@ -161,10 +170,21 @@ function UserDashboard() {
           <table className="w-full border-collapse text-left text-sm">
             <thead>
               <tr className="border-b border-gray-300 bg-gray-100 text-gray-800">
-                <th className="px-3 py-2">Store Name</th>
-                <th className="px-3 py-2">Address</th>
-                <th className="px-3 py-2">Overall Rating</th>
-                <th className="px-3 py-2">My Rating</th>
+                {[
+                  ['name', 'Store Name'],
+                  ['address', 'Address'],
+                  ['overallRating', 'Overall Rating'],
+                  ['userRating', 'My Rating'],
+                ].map(([column, label]) => (
+                  <th
+                    key={column}
+                    onClick={() => handleSort(column)}
+                    className="cursor-pointer select-none px-3 py-2 hover:bg-gray-200"
+                  >
+                    {label}
+                    {sort.sortBy === column && (sort.order === 'asc' ? ' ▲' : ' ▼')}
+                  </th>
+                ))}
                 <th className="px-3 py-2">Action</th>
               </tr>
             </thead>
@@ -191,6 +211,8 @@ function UserDashboard() {
             <p className="py-4 text-center text-sm text-gray-500">No stores found</p>
           )}
         </div>
+
+        <UpdatePassword />
       </div>
     </div>
   );

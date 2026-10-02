@@ -7,10 +7,30 @@ export async function createStoresTable() {
       name VARCHAR(100) NOT NULL,
       email VARCHAR(255) UNIQUE NOT NULL,
       address VARCHAR(400) NOT NULL,
+      owner_id INTEGER UNIQUE REFERENCES users(id) ON DELETE SET NULL,
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW()
     )
   `);
+  // for databases created before owner_id was added
+  await pool.query(
+    "ALTER TABLE stores ADD COLUMN IF NOT EXISTS owner_id INTEGER UNIQUE REFERENCES users(id) ON DELETE SET NULL"
+  );
+}
+
+// the store of a store owner, with its average rating
+export async function findStoreByOwner(ownerId) {
+  const result = await pool.query(
+    `SELECT s.id, s.name, s.email, s.address,
+            ROUND(AVG(r.rating), 2)::float AS "averageRating",
+            COUNT(r.id)::int AS "totalRatings"
+     FROM stores s
+     LEFT JOIN ratings r ON r.store_id = s.id
+     WHERE s.owner_id = $1
+     GROUP BY s.id`,
+    [ownerId]
+  );
+  return result.rows[0];
 }
 
 export async function findStoreById(id) {

@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import Login from "./components/Login";
 import Signup from "./components/Signup";
 import Dashboard from "./components/Dashboard";
+import StoreOwnerDashboard from "./components/StoreOwnerDashboard.jsx";
 import UserDashboard from "./components/UserDashboard.jsx";
 import { dashboardPaths, getUser } from "./services/authService";
 
@@ -12,17 +13,28 @@ function ProtectedRoute({ role, children }) {
 		return <Navigate to="/login" replace />;
 	}
 	if (user.role !== role) {
-		return <Navigate to={dashboardPaths[user.role]} replace />;
+		return <Navigate to={dashboardPaths[user.role] || "/login"} replace />;
+	}
+	return children;
+}
+
+function PublicRoute({ children }) {
+	const user = getUser();
+	if (user && localStorage.getItem("token")) {
+		return <Navigate to={dashboardPaths[user.role] || "/login"} replace />;
 	}
 	return children;
 }
 
 function App() {
+	const user = getUser();
+
 	return (
 		<BrowserRouter>
 			<Routes>
-				<Route path="/signup" element={<Signup />} />
-				<Route path="/login" element={<Login />} />
+				<Route path="/" element={<Navigate to={user && localStorage.getItem("token") ? dashboardPaths[user.role] || "/login" : "/login"} replace />} />
+				<Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
+				<Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
 				<Route
 					path="/admin"
 					element={
@@ -43,11 +55,11 @@ function App() {
 					path="/store-owner"
 					element={
 						<ProtectedRoute role="store_owner">
-							<Dashboard title="Store Owner Dashboard" />
+							<StoreOwnerDashboard />
 						</ProtectedRoute>
 					}
 				/>
-				<Route path="*" element={<Navigate to="/login" replace />} />
+				<Route path="*" element={<Navigate to={user && localStorage.getItem("token") ? dashboardPaths[user.role] || "/login" : "/login"} replace />} />
 			</Routes>
 		</BrowserRouter>
 	);

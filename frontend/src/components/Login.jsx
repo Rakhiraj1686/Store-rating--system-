@@ -36,7 +36,7 @@ function Login() {
       });
       const { token, user } = res.data;
       saveLogin(token, user);
-      navigate(dashboardPaths[user.role]);
+      navigate(dashboardPaths[user.role], { replace: true });
     } catch (err) {
       setError(getErrorMessage(err));
     } finally {

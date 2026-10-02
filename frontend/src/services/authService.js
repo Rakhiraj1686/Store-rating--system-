@@ -31,3 +31,7 @@ export function logout() {
   localStorage.removeItem('token');
   localStorage.removeItem('user');
 }
+
+export function updatePasswordRequest(currentPassword, newPassword) {
+  return api.put('/auth/password', { currentPassword, newPassword });
+}

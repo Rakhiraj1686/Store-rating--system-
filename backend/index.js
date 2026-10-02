@@ -5,9 +5,11 @@ import authRoutes from "./src/router/authRoutes.js";
 import dashboardRoutes from "./src/router/dashboardRoutes.js";
 import storeRoutes from "./src/router/storeRoutes.js";
 import ratingRoutes from "./src/router/ratingRoutes.js";
+import ownerRoutes from "./src/router/ownerRoutes.js";
 import { createUsersTable } from "./src/models/userModel.js";
 import { createStoresTable } from "./src/models/storeModel.js";
 import { createRatingsTable } from "./src/models/ratingModel.js";
+import { seedDemoAccounts } from "./src/seed/seed.js";
 
 const port = Number(process.env.PORT) || 5000;
 
@@ -29,6 +31,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/stores", storeRoutes);
 app.use("/api/ratings", ratingRoutes);
+app.use("/api/owner", ownerRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ error: "Not found" });
@@ -37,6 +40,7 @@ app.use((req, res) => {
 createUsersTable()
   .then(createStoresTable)
   .then(createRatingsTable)
+  .then(seedDemoAccounts)
   .then(() => {
     app.listen(port, () => {
       console.log(`Backend listening on http://localhost:${port}`);

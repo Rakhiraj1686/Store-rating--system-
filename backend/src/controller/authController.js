@@ -1,15 +1,21 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { createUser, findByEmail } from "../models/userModel.js";
+import { createUser, findById, findByEmail, updatePassword } from "../models/userModel.js";
 
 const roles = ["admin", "user", "store_owner"];
+const passwordRule = /^(?=.*[A-Z])(?=.*[^A-Za-z0-9]).{8,16}$/;
+const passwordError =
+  "Password must be 8-16 characters with one uppercase letter and one special character";
 
-function checkSignup({ name, email, address, password }) {
+function checkSignup({ name, email, address, password, role }) {
   if (!name || !email || !address || !password) {
     return "All required fields must be filled";
   }
-  if (name.trim().length < 20 || name.trim().length > 60) {
-    return "Name must be between 20 and 60 characters";
+  if (!['user', 'store_owner'].includes(role)) {
+    return "Invalid signup role";
+  }
+  if (name.trim().length < 2 || name.trim().length > 60) {
+    return "Name must be between 2 and 60 characters";
   }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
     return "Please enter a valid email address";
@@ -17,8 +23,8 @@ function checkSignup({ name, email, address, password }) {
   if (address.trim().length > 400) {
     return "Address cannot exceed 400 characters";
   }
-  if (!/^(?=.*[A-Z])(?=.*[^A-Za-z0-9]).{8,16}$/.test(password)) {
-    return "Password must be 8-16 characters with one uppercase letter and one special character";
+  if (!passwordRule.test(password)) {
+    return passwordError;
   }
   return "";
 }
@@ -38,7 +44,7 @@ export async function signup(req, res) {
       email: body.email.trim().toLowerCase(),
       address: body.address.trim(),
       password: hashedPassword,
-      role: "user",
+      role: body.role,
     });
 
     res.status(201).json({ message: "Account created successfully", user });
@@ -88,6 +94,39 @@ export async function login(req, res) {
     });
   } catch (err) {
     console.error("Login error:", err.message);
+    res.status(500).json({ message: "Something went wrong. Please try again." });
+  }
+}
+
+export async function changePassword(req, res) {
+  const { currentPassword, newPassword } = req.body || {};
+
+  if (!currentPassword || !newPassword) {
+    return res.status(400).json({ message: "All required fields must be filled" });
+  }
+  if (!passwordRule.test(newPassword)) {
+    return res.status(400).json({ message: passwordError });
+  }
+
+  try {
+    // user id comes from the token
+    const user = await findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const matches = await bcrypt.compare(currentPassword, user.password);
+    if (!matches) {
+      return res.status(400).json({ message: "Current password is incorrect" });
+    }
+    if (currentPassword === newPassword) {
+      return res.status(400).json({ message: "New password must be different" });
+    }
+
+    await updatePassword(user.id, await bcrypt.hash(newPassword, 10));
+    res.json({ message: "Password updated successfully" });
+  } catch (err) {
+    console.error("Change password error:", err.message);
     res.status(500).json({ message: "Something went wrong. Please try again." });
   }
 }

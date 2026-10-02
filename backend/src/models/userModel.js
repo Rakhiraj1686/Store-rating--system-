@@ -29,3 +29,12 @@ export async function createUser({ name, email, address, password, role }) {
   );
   return result.rows[0];
 }
+
+export async function findById(id) {
+  const result = await pool.query("SELECT * FROM users WHERE id = $1", [id]);
+  return result.rows[0];
+}
+
+export async function updatePassword(id, password) {
+  await pool.query("UPDATE users SET password = $1 WHERE id = $2", [password, id]);
+}
