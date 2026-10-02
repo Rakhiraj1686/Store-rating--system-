@@ -4,15 +4,12 @@ import { createUser, findByEmail } from "../models/userModel.js";
 
 const roles = ["admin", "user", "store_owner"];
 
-function checkSignup({ name, email, address, password, role }) {
+function checkSignup({ name, email, address, password }) {
   if (!name || !email || !address || !password) {
     return "All required fields must be filled";
   }
-  if (!['user', 'store_owner'].includes(role)) {
-    return "Invalid signup role";
-  }
-  if (name.trim().length < 2 || name.trim().length > 60) {
-    return "Name must be between 2 and 60 characters";
+  if (name.trim().length < 20 || name.trim().length > 60) {
+    return "Name must be between 20 and 60 characters";
   }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
     return "Please enter a valid email address";
@@ -41,7 +38,7 @@ export async function signup(req, res) {
       email: body.email.trim().toLowerCase(),
       address: body.address.trim(),
       password: hashedPassword,
-      role: body.role,
+      role: "user",
     });
 
     res.status(201).json({ message: "Account created successfully", user });
