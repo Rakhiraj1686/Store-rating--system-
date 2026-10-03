@@ -1,6 +1,11 @@
 import bcrypt from "bcryptjs";
 import pool from "../config/db.js";
-import { createUser, createUsersTable, findByEmail } from "../models/userModel.js";
+import {
+  createUser,
+  createUsersTable,
+  findByEmail,
+  updatePassword,
+} from "../models/userModel.js";
 import { createStoresTable } from "../models/storeModel.js";
 
 export async function seedDemoAccounts() {
@@ -26,12 +31,16 @@ export async function seedDemoAccounts() {
   await createStoresTable();
 
   for (const account of accounts) {
-    if (await findByEmail(account.email)) {
-      console.log(`${account.email} already exists`);
+    const existingUser = await findByEmail(account.email);
+    const passwordHash = await bcrypt.hash(account.password, 10);
+
+    if (existingUser) {
+      await updatePassword(existingUser.id, passwordHash);
+      console.log(`${account.email} password reset to default ${account.password}`);
       continue;
     }
-    const password = await bcrypt.hash(account.password, 10);
-    await createUser({ ...account, password });
+
+    await createUser({ ...account, password: passwordHash });
     console.log(`Created ${account.role}: ${account.email}`);
   }
 
